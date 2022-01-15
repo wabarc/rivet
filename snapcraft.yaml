@@ -1,0 +1,30 @@
+name: rivet
+
+version: 'git'
+
+summary: A toolkit makes it easier to archive webpages to IPFS.
+
+description: |
+  Rivet is both a command-line tool and a Golang package for archiving webpages to IPFS.
+  Website https://github.com/wabarc/rivet
+
+grade: stable
+
+confinement: strict
+
+base: core18
+
+parts:
+  rivet:
+    plugin: go
+    source: https://github.com/wabarc/rivet.git
+    go-importpath: github.com/wabarc/rivet/cmd/rivet
+    build-packages:
+      - build-essential
+
+apps:
+  rivet:
+    command: rivet
+    plugs:
+      - home
+      - network
