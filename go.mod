@@ -6,7 +6,7 @@ require (
 	github.com/go-shiori/dom v0.0.0-20210627111528-4e4722cd0d65
 	github.com/ipfs/go-ipfs-api v0.3.0
 	github.com/pkg/errors v0.9.1
-	github.com/tdewolff/parse/v2 v2.5.26
+	github.com/tdewolff/parse/v2 v2.5.27
 	github.com/wabarc/helper v0.0.0-20211225065210-3d35291efe54
 	github.com/wabarc/ipfs-pinner v1.1.1-0.20220115073542-7ce339062c25
 	golang.org/x/net v0.0.0-20211029224645-99673261e6eb
