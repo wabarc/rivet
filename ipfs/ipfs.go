@@ -27,13 +27,17 @@ var _ Pinner = (*Remotely)(nil)
 
 // The HandlerFunc type is an adapter to allow the use of
 // ordinary functions as IPFS handlers.
-type HandlerFunc func(Pinner, []byte) (string, error)
+type HandlerFunc func(Pinner, interface{}) (string, error)
 
 // Pinner is an interface that wraps the Pin method.
 type Pinner interface {
 	// Pin implements data transmission to the destination service by given buf. It
 	// returns the content-id returned by the local IPFS server or a remote pinning service.
 	Pin(buf []byte) (string, error)
+
+	// Pin implements directory transmission to the destination service by given path. It
+	// returns the content-id returned by the local IPFS server or a remote pinning service.
+	PinDir(path string) (string, error)
 }
 
 type Locally struct {
@@ -114,9 +118,19 @@ func Options(options ...PinningOption) Pinning {
 // Pin implements putting the data to local IPFS node by given buf. It
 // returns content-id and an error.
 func (l *Locally) Pin(buf []byte) (cid string, err error) {
-	cid, err = l.shell.Add(bytes.NewReader(buf))
+	cid, err = l.shell.Add(bytes.NewReader(buf), shell.Pin(true))
 	if err != nil {
 		return "", errors.Wrap(err, "add file to IPFS failed")
+	}
+	return
+}
+
+// Pin implements putting the data to local IPFS node by given buf. It
+// returns content-id and an error.
+func (l *Locally) PinDir(path string) (cid string, err error) {
+	cid, err = l.shell.AddDir(path)
+	if err != nil {
+		return "", errors.Wrap(err, "add directory to IPFS failed")
 	}
 	return
 }
@@ -130,5 +144,17 @@ func (r *Remotely) Pin(buf []byte) (cid string, err error) {
 		Secret: r.Secret,
 	}
 	cid, err = pinner.Pin(buf)
+	return
+}
+
+// Pin implements putting the data to destination pinning service by given buf. It
+// returns content-id and an error.
+func (r *Remotely) PinDir(path string) (cid string, err error) {
+	pinner := &pinner.Config{
+		Pinner: r.Pinner,
+		Apikey: r.Apikey,
+		Secret: r.Secret,
+	}
+	cid, err = pinner.Pin(path)
 	return
 }

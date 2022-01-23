@@ -452,14 +452,14 @@ func (arc *Archiver) processURLNode(ctx context.Context, node *html.Node, attrNa
 	}
 
 	url := dom.GetAttribute(node, attrName)
-	content, contentType, err := arc.processURL(ctx, url, baseURL.String())
+	content, _, err := arc.processURL(ctx, url, baseURL.String())
 	if err != nil && err != errSkippedURL {
 		return err
 	}
 
 	newURL := url
 	if err == nil {
-		newURL = arc.transform(contentType, content)
+		newURL = arc.transform(url, content)
 	}
 
 	dom.SetAttribute(node, attrName, newURL)
@@ -546,14 +546,14 @@ func (arc *Archiver) processEmbedNode(ctx context.Context, node *html.Node, base
 	}
 
 	url := dom.GetAttribute(node, attrName)
-	content, contentType, err := arc.processURL(ctx, url, baseURL.String())
+	content, _, err := arc.processURL(ctx, url, baseURL.String())
 	if err != nil && err != errSkippedURL {
 		return err
 	}
 
 	newURL := url
 	if err == nil {
-		newURL = arc.transform(contentType, content)
+		newURL = arc.transform(url, content)
 	}
 
 	dom.SetAttribute(node, attrName, newURL)
@@ -581,14 +581,14 @@ func (arc *Archiver) processMediaNode(ctx context.Context, node *html.Node, base
 		oldURL := parts[1]
 		targetWidth := parts[2]
 
-		content, contentType, err := arc.processURL(ctx, oldURL, baseURL.String())
+		content, _, err := arc.processURL(ctx, oldURL, baseURL.String())
 		if err != nil && err != errSkippedURL {
 			return err
 		}
 
 		newSet := oldURL
 		if err == nil {
-			newSet = arc.transform(contentType, content)
+			newSet = arc.transform(oldURL, content)
 		}
 
 		newSet += targetWidth

@@ -9,10 +9,13 @@ import (
 	"net"
 	"net/http"
 	nurl "net/url"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/kennygrant/sanitize"
 	"github.com/wabarc/rivet/ipfs"
 	"golang.org/x/sync/semaphore"
 )
@@ -52,6 +55,7 @@ type Archiver struct {
 	MaxConcurrentDownload int64
 	DialContext           func(ctx context.Context, network, addr string) (net.Conn, error)
 	SkipResourceURLError  bool
+	ResTempDir            string // directory to stores resources
 
 	isValidated bool
 	cookies     []*http.Cookie
@@ -160,12 +164,43 @@ func (arc *Archiver) downloadFile(url string, parentURL string) (*http.Response,
 	return resp, nil
 }
 
-// TODO: wraps all files into a directory
-func (arc *Archiver) transform(contentType string, content []byte) string {
-	cid, err := arc.PinFunc(nil, content)
+func (arc *Archiver) transform(uri string, content []byte) string {
+	path, name, err := arc.file(uri)
 	if err != nil {
-		// Fallback to creating data URL
-		return createDataURL(content, contentType)
+		name = sanitize.BaseName(uri)
+		path = filepath.Join(arc.ResTempDir, name)
 	}
-	return "/ipfs/" + cid
+
+	if err := ioutil.WriteFile(path, content, 0600); err != nil {
+		// Fallback to creating data URL
+		return createDataURL(content, http.DetectContentType(content))
+	}
+
+	return filepath.Join(".", name)
+}
+
+func (arc *Archiver) file(uri string) (path string, rel string, err error) {
+	if uri == "" {
+		return "", "", nil
+	}
+	u, err := nurl.ParseRequestURI(uri)
+	if err != nil {
+		return "", "", err
+	}
+	// e.g. /statics/css/foo.css
+	rel, err = filepath.Abs(u.Path)
+	if err != nil {
+		return "", "", err
+	}
+	// e.g. /tmp/some/statics/css/
+	dir := filepath.Join(arc.ResTempDir, filepath.Dir(rel))
+	if err != nil {
+		return "", "", err
+	}
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		return "", "", err
+	}
+	// e.g. /tmp/some/statics/css/foo.css
+	path = filepath.Join(dir, filepath.Base(rel))
+	return path, rel, nil
 }

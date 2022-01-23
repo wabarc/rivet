@@ -11,9 +11,11 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
+	"github.com/kennygrant/sanitize"
 	"github.com/pkg/errors"
 	"github.com/wabarc/rivet/internal/obelisk"
 	"github.com/wabarc/rivet/ipfs"
@@ -27,25 +29,43 @@ type Shaft struct {
 
 // Wayback uses IPFS to archive webpages.
 func (s *Shaft) Wayback(ctx context.Context, input *url.URL) (cid string, err error) {
-	dir, err := ioutil.TempDir(os.TempDir(), "rivet-")
-	if err != nil {
-		return "", errors.Wrap(err, "create temp directory failed")
-	}
-	defer os.RemoveAll(dir)
-
 	var pinFunc ipfs.HandlerFunc
 	switch s.Hold.Mode {
 	case ipfs.Local:
-		pinFunc = func(i ipfs.Pinner, b []byte) (string, error) {
-			return (&ipfs.Locally{Pinning: s.Hold}).Pin(b)
+		pinFunc = func(_ ipfs.Pinner, i interface{}) (string, error) {
+			switch v := i.(type) {
+			case []byte:
+				return (&ipfs.Locally{Pinning: s.Hold}).Pin(v)
+			case string:
+				return (&ipfs.Locally{Pinning: s.Hold}).PinDir(v)
+			default:
+				return "", errors.New("unknown pin request")
+			}
 		}
 	case ipfs.Remote:
-		pinFunc = func(i ipfs.Pinner, b []byte) (string, error) {
-			return (&ipfs.Remotely{Pinning: s.Hold}).Pin(b)
+		pinFunc = func(_ ipfs.Pinner, i interface{}) (string, error) {
+			switch v := i.(type) {
+			case []byte:
+				return (&ipfs.Remotely{Pinning: s.Hold}).Pin(v)
+			case string:
+				return (&ipfs.Remotely{Pinning: s.Hold}).PinDir(v)
+			default:
+				return "", errors.New("unknown pin request")
+			}
 		}
 	default:
 		return "", errors.New("unknown pinning mode")
 	}
+
+	dir := "rivet-" + sanitize.BaseName(input.Host) + sanitize.BaseName(input.Path)
+	if len(dir) > 255 {
+		dir = dir[:254]
+	}
+	dir, err = ioutil.TempDir(os.TempDir(), dir+"-")
+	if err != nil {
+		return "", errors.Wrap(err, "create temp directory failed: "+dir)
+	}
+	defer os.RemoveAll(dir)
 
 	uri := input.String()
 	req := obelisk.Request{URL: uri, Input: inputFromContext(ctx)}
@@ -53,6 +73,8 @@ func (s *Shaft) Wayback(ctx context.Context, input *url.URL) (cid string, err er
 		DisableJS: isDisableJS(uri),
 
 		SkipResourceURLError: true,
+
+		ResTempDir: dir,
 
 		PinFunc: pinFunc,
 	}
@@ -62,12 +84,17 @@ func (s *Shaft) Wayback(ctx context.Context, input *url.URL) (cid string, err er
 	if err != nil {
 		return "", errors.Wrap(err, "archive failed")
 	}
+	// For auto indexing in IPFS, the filename should be index.html.
+	indexFile := filepath.Join(dir, "index.html")
+	if err := ioutil.WriteFile(indexFile, content, 0600); err != nil {
+		return "", errors.Wrap(err, "create index file failed")
+	}
 
 	switch s.Hold.Mode {
 	case ipfs.Local:
-		cid, err = (&ipfs.Locally{Pinning: s.Hold}).Pin(content)
+		cid, err = (&ipfs.Locally{Pinning: s.Hold}).PinDir(dir)
 	case ipfs.Remote:
-		cid, err = (&ipfs.Remotely{Pinning: s.Hold}).Pin(content)
+		cid, err = (&ipfs.Remotely{Pinning: s.Hold}).PinDir(dir)
 	}
 	if err != nil {
 		return "", errors.Wrap(err, "pin failed")
