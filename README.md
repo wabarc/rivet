@@ -43,20 +43,20 @@ Usage:
 
   rivet [options] [url1] ... [urlN]
 
-  -h string
+  -host string
         IPFS node address (default "localhost")
-  -k string
-        Pinner apikey or username.
   -m string
         Pin mode, supports mode: local, remote (default "remote")
-  -p int
-        IPFS node port (default 5001)
-  -s string
+  -p string
         Pinner sceret or password.
+  -port int
+        IPFS node port (default 5001)
   -t string
         IPFS pinner, supports pinners: infura, pinata, nftstorage, web3storage. (default "infura")
   -timeout uint
         Timeout for every input URL (default 30)
+  -u string
+        Pinner apikey or username.
 ```
 
 #### Examples

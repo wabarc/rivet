@@ -42,11 +42,11 @@ func main() {
 
 	flag.StringVar(&mode, "m", "remote", "Pin mode, supports mode: local, remote")
 	flag.UintVar(&timeout, "timeout", 30, "Timeout for every input URL")
-	flag.StringVar(&host, "h", "localhost", "IPFS node address")
-	flag.IntVar(&port, "p", 5001, "IPFS node port")
+	flag.StringVar(&host, "host", "localhost", "IPFS node address")
+	flag.IntVar(&port, "port", 5001, "IPFS node port")
 	flag.StringVar(&target, "t", "infura", "IPFS pinner, supports pinners: infura, pinata, nftstorage, web3storage.")
-	flag.StringVar(&apikey, "k", "", "Pinner apikey or username.")
-	flag.StringVar(&secret, "s", "", "Pinner sceret or password.")
+	flag.StringVar(&apikey, "u", "", "Pinner apikey or username.")
+	flag.StringVar(&secret, "p", "", "Pinner sceret or password.")
 	flag.Parse()
 
 	opts := []ipfs.PinningOption{
