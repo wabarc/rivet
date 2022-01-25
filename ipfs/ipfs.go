@@ -8,7 +8,9 @@ import (
 	"bytes"
 	"net"
 	"strconv"
+	"time"
 
+	"github.com/cenkalti/backoff/v4"
 	"github.com/pkg/errors"
 
 	shell "github.com/ipfs/go-ipfs-api"
@@ -20,6 +22,9 @@ type mode int
 const (
 	Remote mode = iota // Store files to pinning service
 	Local              // Store file on local IPFS node
+
+	maxElapsedTime = 5 * time.Minute
+	maxRetries     = 10
 )
 
 var _ Pinner = (*Locally)(nil)
@@ -118,7 +123,11 @@ func Options(options ...PinningOption) Pinning {
 // Pin implements putting the data to local IPFS node by given buf. It
 // returns content-id and an error.
 func (l *Locally) Pin(buf []byte) (cid string, err error) {
-	cid, err = l.shell.Add(bytes.NewReader(buf), shell.Pin(true))
+	action := func() error {
+		cid, err = l.shell.Add(bytes.NewReader(buf), shell.Pin(true))
+		return err
+	}
+	err = doRetry(action)
 	if err != nil {
 		return "", errors.Wrap(err, "add file to IPFS failed")
 	}
@@ -128,7 +137,11 @@ func (l *Locally) Pin(buf []byte) (cid string, err error) {
 // Pin implements putting the data to local IPFS node by given buf. It
 // returns content-id and an error.
 func (l *Locally) PinDir(path string) (cid string, err error) {
-	cid, err = l.shell.AddDir(path)
+	action := func() error {
+		cid, err = l.shell.AddDir(path)
+		return err
+	}
+	err = doRetry(action)
 	if err != nil {
 		return "", errors.Wrap(err, "add directory to IPFS failed")
 	}
@@ -138,23 +151,37 @@ func (l *Locally) PinDir(path string) (cid string, err error) {
 // Pin implements putting the data to destination pinning service by given buf. It
 // returns content-id and an error.
 func (r *Remotely) Pin(buf []byte) (cid string, err error) {
-	pinner := &pinner.Config{
-		Pinner: r.Pinner,
-		Apikey: r.Apikey,
-		Secret: r.Secret,
+	action := func() error {
+		cid, err = r.remotely().Pin(buf)
+		return err
 	}
-	cid, err = pinner.Pin(buf)
+	err = doRetry(action)
 	return
 }
 
 // Pin implements putting the data to destination pinning service by given buf. It
 // returns content-id and an error.
 func (r *Remotely) PinDir(path string) (cid string, err error) {
-	pinner := &pinner.Config{
+	action := func() error {
+		cid, err = r.remotely().Pin(path)
+		return err
+	}
+	err = doRetry(action)
+	return
+}
+
+func (r *Remotely) remotely() *pinner.Config {
+	return &pinner.Config{
 		Pinner: r.Pinner,
 		Apikey: r.Apikey,
 		Secret: r.Secret,
 	}
-	cid, err = pinner.Pin(path)
-	return
+}
+
+func doRetry(op backoff.Operation) error {
+	exp := backoff.NewExponentialBackOff()
+	exp.MaxElapsedTime = maxElapsedTime
+	bo := backoff.WithMaxRetries(exp, maxRetries)
+
+	return backoff.Retry(op, bo)
 }
