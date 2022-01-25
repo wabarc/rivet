@@ -15,6 +15,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cenkalti/backoff/v4"
 	"github.com/kennygrant/sanitize"
 	"github.com/wabarc/rivet/ipfs"
 	"golang.org/x/sync/semaphore"
@@ -156,12 +157,21 @@ func (arc *Archiver) downloadFile(url string, parentURL string) (*http.Response,
 		req.AddCookie(cookie)
 	}
 
-	resp, err := arc.httpClient.Do(req)
-	if err != nil {
-		return nil, err
+	var resp *http.Response
+	op := func() error {
+		var err error
+		resp, err = arc.httpClient.Do(req) //nolint:bodyclose,goimports
+		if err == nil && resp != nil && resp.StatusCode > 200 {
+			err = fmt.Errorf("failed to fetch with status code: %d", resp.StatusCode)
+		}
+		return err
 	}
+	exp := backoff.NewExponentialBackOff()
+	exp.MaxElapsedTime = 5 * time.Minute
+	bo := backoff.WithMaxRetries(exp, 10)
+	err = backoff.Retry(op, bo)
 
-	return resp, nil
+	return resp, err
 }
 
 func (arc *Archiver) transform(uri string, content []byte) string {
