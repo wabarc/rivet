@@ -182,7 +182,6 @@ func (arc *Archiver) setSourceURL(doc *html.Node, baseURL *nurl.URL) {
 
 // add head meta
 func (arc *Archiver) addMeta(doc *html.Node) {
-	// Put the URL to head
 	heads := dom.GetElementsByTagName(doc, "head")
 	meta := dom.CreateElement("meta")
 	charset := dom.GetAttribute(meta, "charset")

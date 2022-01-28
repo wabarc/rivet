@@ -101,7 +101,7 @@ func main() {
 		ipfs.Uses(pinner.Infura),
 	}
 	p := ipfs.Options(opts...)
-	r := &rivet.Shaft{Pinning: p}
+	r := &rivet.Shaft{Hold: p}
 	l := "https://example.com"
 	input, err := url.Parse(l)
 	if err != nil {
