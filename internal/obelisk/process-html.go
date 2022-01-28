@@ -518,15 +518,9 @@ func (arc *Archiver) processLinkNode(ctx context.Context, node *html.Node, baseU
 		return err
 	}
 
-	// Remove all attributes for this node
-	for i := len(node.Attr) - 1; i >= 0; i-- {
-		dom.RemoveAttribute(node, node.Attr[i].Key)
-	}
+	newSrc := arc.transform(url, content)
+	dom.SetAttribute(node, "href", newSrc)
 
-	// Convert <link> into <style>
-	node.Data = "style"
-	dom.SetAttribute(node, "type", "text/css")
-	dom.SetTextContent(node, b2s(content))
 	return nil
 }
 
@@ -544,8 +538,8 @@ func (arc *Archiver) processScriptNode(ctx context.Context, node *html.Node, bas
 		return err
 	}
 
-	dom.RemoveAttribute(node, "src")
-	dom.SetTextContent(node, b2s(content))
+	newSrc := arc.transform(url, content)
+	dom.SetAttribute(node, "src", newSrc)
 	return nil
 }
 
