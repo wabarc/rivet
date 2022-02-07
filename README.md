@@ -2,7 +2,7 @@
 
 [![LICENSE](https://img.shields.io/github/license/wabarc/rivet.svg?color=green)](https://github.com/wabarc/rivet/blob/main/LICENSE)
 [![Go Report Card](https://goreportcard.com/badge/github.com/wabarc/rivet)](https://goreportcard.com/report/github.com/wabarc/rivet)
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/wabarc/rivet/Go?color=brightgreen)](https://github.com/wabarc/rivet/actions)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/wabarc/rivet/Builder?color=brightgreen)](https://github.com/wabarc/rivet/actions/workflows/builder.yml)
 [![Go Reference](https://img.shields.io/badge/godoc-reference-blue.svg)](https://pkg.go.dev/github.com/wabarc/rivet)
 [![Releases](https://img.shields.io/github/v/release/wabarc/rivet.svg?include_prereleases&color=blue)](https://github.com/wabarc/rivet/releases)
 
