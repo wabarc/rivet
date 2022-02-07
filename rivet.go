@@ -9,11 +9,14 @@ import (
 	"context"
 	"io"
 	"io/ioutil"
+	"net"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/kennygrant/sanitize"
 	"github.com/pkg/errors"
@@ -45,6 +48,19 @@ func (s *Shaft) Wayback(ctx context.Context, input *url.URL) (cid string, err er
 
 	uri := input.String()
 	req := obelisk.Request{URL: uri, Input: inputFromContext(ctx)}
+	// http.DefaultTransport
+	tr := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).DialContext,
+		ForceAttemptHTTP2:     true,
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
 	arc := &obelisk.Archiver{
 		DisableJS: isDisableJS(uri),
 
@@ -53,6 +69,8 @@ func (s *Shaft) Wayback(ctx context.Context, input *url.URL) (cid string, err er
 		ResTempDir: dir,
 
 		SingleFile: s.ArchiveOnly,
+
+		Transport: tr,
 	}
 	arc.Validate()
 
