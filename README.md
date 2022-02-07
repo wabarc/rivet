@@ -46,7 +46,7 @@ Usage:
   -host string
         IPFS node address (default "localhost")
   -m string
-        Pin mode, supports mode: local, remote (default "remote")
+        Pin mode, supports mode: local, remote, archive (default "remote")
   -p string
         Pinner sceret or password.
   -port int
@@ -77,6 +77,12 @@ Or, specify a pinning service.
 
 ```sh
 rivet -t pinata -k your-apikey -s your-secret https://example.com
+```
+
+Or, stores file locally without any IPFS node.
+
+```sh
+rivet -m archive https://example.com
 ```
 
 ### Go package
