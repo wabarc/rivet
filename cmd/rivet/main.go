@@ -40,7 +40,7 @@ func main() {
 		fmt.Fprint(os.Stdout, "\n")
 	}
 
-	flag.StringVar(&mode, "m", "remote", "Pin mode, supports mode: local, remote")
+	flag.StringVar(&mode, "m", "remote", "Pin mode, supports mode: local, remote, archive")
 	flag.UintVar(&timeout, "timeout", 30, "Timeout for every input URL")
 	flag.StringVar(&host, "host", "localhost", "IPFS node address")
 	flag.IntVar(&port, "port", 5001, "IPFS node port")
@@ -94,7 +94,7 @@ func main() {
 			reqctx, cancel := context.WithTimeout(ctx, toc)
 			defer cancel()
 
-			r := &rivet.Shaft{Hold: opt}
+			r := &rivet.Shaft{Hold: opt, ArchiveOnly: mode == "archive"}
 			if dest, err := r.Wayback(reqctx, input); err != nil {
 				fmt.Fprintf(os.Stderr, "rivet: %v\n", err)
 			} else {
