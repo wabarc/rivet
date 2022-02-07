@@ -25,42 +25,18 @@ import (
 type Shaft struct {
 	// Hold specifies which IPFS mode to pin data through.
 	Hold ipfs.Pinning
+
+	ArchiveOnly bool // Do not store file on any IPFS node, just archive
 }
 
 // Wayback uses IPFS to archive webpages.
 func (s *Shaft) Wayback(ctx context.Context, input *url.URL) (cid string, err error) {
-	var pinFunc ipfs.HandlerFunc
-	switch s.Hold.Mode {
-	case ipfs.Local:
-		pinFunc = func(_ ipfs.Pinner, i interface{}) (string, error) {
-			switch v := i.(type) {
-			case []byte:
-				return (&ipfs.Locally{Pinning: s.Hold}).Pin(v)
-			case string:
-				return (&ipfs.Locally{Pinning: s.Hold}).PinDir(v)
-			default:
-				return "", errors.New("unknown pin request")
-			}
-		}
-	case ipfs.Remote:
-		pinFunc = func(_ ipfs.Pinner, i interface{}) (string, error) {
-			switch v := i.(type) {
-			case []byte:
-				return (&ipfs.Remotely{Pinning: s.Hold}).Pin(v)
-			case string:
-				return (&ipfs.Remotely{Pinning: s.Hold}).PinDir(v)
-			default:
-				return "", errors.New("unknown pin request")
-			}
-		}
-	default:
-		return "", errors.New("unknown pinning mode")
-	}
-
-	dir := "rivet-" + sanitize.BaseName(input.Host) + sanitize.BaseName(input.Path)
+	name := sanitize.BaseName(input.Host) + sanitize.BaseName(input.Path)
+	dir := "rivet-" + name
 	if len(dir) > 255 {
 		dir = dir[:254]
 	}
+
 	dir, err = ioutil.TempDir(os.TempDir(), dir+"-")
 	if err != nil {
 		return "", errors.Wrap(err, "create temp directory failed: "+dir)
@@ -76,7 +52,7 @@ func (s *Shaft) Wayback(ctx context.Context, input *url.URL) (cid string, err er
 
 		ResTempDir: dir,
 
-		PinFunc: pinFunc,
+		SingleFile: s.ArchiveOnly,
 	}
 	arc.Validate()
 
@@ -84,10 +60,19 @@ func (s *Shaft) Wayback(ctx context.Context, input *url.URL) (cid string, err er
 	if err != nil {
 		return "", errors.Wrap(err, "archive failed")
 	}
+
 	// For auto indexing in IPFS, the filename should be index.html.
 	indexFile := filepath.Join(dir, "index.html")
+	if s.ArchiveOnly {
+		indexFile = name + ".html"
+	}
+
 	if err := ioutil.WriteFile(indexFile, content, 0600); err != nil {
 		return "", errors.Wrap(err, "create index file failed")
+	}
+
+	if s.ArchiveOnly {
+		return indexFile, nil
 	}
 
 	switch s.Hold.Mode {

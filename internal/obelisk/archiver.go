@@ -17,7 +17,6 @@ import (
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/kennygrant/sanitize"
-	"github.com/wabarc/rivet/ipfs"
 	"golang.org/x/sync/semaphore"
 )
 
@@ -63,7 +62,7 @@ type Archiver struct {
 	httpClient  *http.Client
 	dlSemaphore *semaphore.Weighted
 
-	PinFunc ipfs.HandlerFunc
+	SingleFile bool
 }
 
 // Validate prepares Archiver to make sure its configurations
@@ -179,6 +178,10 @@ func (arc *Archiver) transform(uri string, content []byte) string {
 	if err != nil {
 		name = sanitize.BaseName(uri)
 		path = filepath.Join(arc.ResTempDir, name)
+	}
+
+	if arc.SingleFile {
+		return createDataURL(content, http.DetectContentType(content))
 	}
 
 	if err := ioutil.WriteFile(path, content, 0600); err != nil {
