@@ -18,9 +18,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-shiori/obelisk"
 	"github.com/kennygrant/sanitize"
 	"github.com/pkg/errors"
-	"github.com/wabarc/rivet/internal/obelisk"
 	"github.com/wabarc/rivet/ipfs"
 )
 
@@ -66,9 +66,7 @@ func (s *Shaft) Wayback(ctx context.Context, input *url.URL) (cid string, err er
 
 		SkipResourceURLError: true,
 
-		ResTempDir: dir,
-
-		SingleFile: s.ArchiveOnly,
+		WrapDirectory: dir,
 
 		Transport: tr,
 	}
