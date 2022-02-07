@@ -31,36 +31,6 @@ type Shaft struct {
 
 // Wayback uses IPFS to archive webpages.
 func (s *Shaft) Wayback(ctx context.Context, input *url.URL) (cid string, err error) {
-	var pinFunc ipfs.HandlerFunc
-	if !s.ArchiveOnly {
-		switch s.Hold.Mode {
-		case ipfs.Local:
-			pinFunc = func(_ ipfs.Pinner, i interface{}) (string, error) {
-				switch v := i.(type) {
-				case []byte:
-					return (&ipfs.Locally{Pinning: s.Hold}).Pin(v)
-				case string:
-					return (&ipfs.Locally{Pinning: s.Hold}).PinDir(v)
-				default:
-					return "", errors.New("unknown pin request")
-				}
-			}
-		case ipfs.Remote:
-			pinFunc = func(_ ipfs.Pinner, i interface{}) (string, error) {
-				switch v := i.(type) {
-				case []byte:
-					return (&ipfs.Remotely{Pinning: s.Hold}).Pin(v)
-				case string:
-					return (&ipfs.Remotely{Pinning: s.Hold}).PinDir(v)
-				default:
-					return "", errors.New("unknown pin request")
-				}
-			}
-		default:
-			return "", errors.New("unknown pinning mode")
-		}
-	}
-
 	name := sanitize.BaseName(input.Host) + sanitize.BaseName(input.Path)
 	dir := "rivet-" + name
 	if len(dir) > 255 {
@@ -81,8 +51,6 @@ func (s *Shaft) Wayback(ctx context.Context, input *url.URL) (cid string, err er
 		SkipResourceURLError: true,
 
 		ResTempDir: dir,
-
-		PinFunc: pinFunc,
 
 		SingleFile: s.ArchiveOnly,
 	}

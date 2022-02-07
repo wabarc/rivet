@@ -17,7 +17,6 @@ import (
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/kennygrant/sanitize"
-	"github.com/wabarc/rivet/ipfs"
 	"golang.org/x/sync/semaphore"
 )
 
@@ -62,8 +61,6 @@ type Archiver struct {
 	cookies     []*http.Cookie
 	httpClient  *http.Client
 	dlSemaphore *semaphore.Weighted
-
-	PinFunc ipfs.HandlerFunc
 
 	SingleFile bool
 }
