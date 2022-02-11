@@ -125,12 +125,6 @@ func main() {
 
 ## F.A.Q
 
-### Does not load resources after redirecting to a subdomain?
-
-Subdomain gateway such as https://baf**.ipfs.io/ are not yet supported.
-
-See: https://docs.ipfs.io/how-to/address-ipfs-on-web/#subdomain-gateway
-
 ### Optional to disable JavaScript for some URI?
 
 If you prefer to disable JavaScript on saving webpage, you could add environmental variables `DISABLEJS_URIS`
