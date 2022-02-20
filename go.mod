@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/cenkalti/backoff/v4 v4.1.2
-	github.com/go-shiori/obelisk v0.0.0-20201115143556-8de0d40b0a9b
+	github.com/go-shiori/obelisk v0.0.0-20220220092206-60b3a6b76c5e
 	github.com/ipfs/go-ipfs-api v0.3.0
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/pkg/errors v0.9.1
@@ -49,5 +49,3 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	mvdan.cc/xurls/v2 v2.3.0 // indirect
 )
-
-replace github.com/go-shiori/obelisk => github.com/wabarc/obelisk v0.0.0-20220214133717-b731766a194b

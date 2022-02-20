@@ -137,6 +137,8 @@ github.com/go-logfmt/logfmt v0.3.0/go.mod h1:Qt1PoO58o5twSAckw1HlFXLmHsOX5/0LbT9
 github.com/go-logfmt/logfmt v0.4.0/go.mod h1:3RMwSq7FuexP4Kalkev3ejPJsZTpXXBr9+V4qmtdjCk=
 github.com/go-shiori/dom v0.0.0-20210627111528-4e4722cd0d65 h1:zx4B0AiwqKDQq+AgqxWeHwbbLJQeidq20hgfP+aMNWI=
 github.com/go-shiori/dom v0.0.0-20210627111528-4e4722cd0d65/go.mod h1:NPO1+buE6TYOWhUI98/hXLHHJhunIpXRuvDN4xjkCoE=
+github.com/go-shiori/obelisk v0.0.0-20220220092206-60b3a6b76c5e h1:HPKrY2DeewRa5hjuIuP6FwUeJf2C5CAOT2jKOdfyRMs=
+github.com/go-shiori/obelisk v0.0.0-20220220092206-60b3a6b76c5e/go.mod h1:1qhWqSYJil8gAg6HZqLtAuvv1S5bh3xJwd4N/WCO0aM=
 github.com/go-stack/stack v1.8.0/go.mod h1:v0f6uXyyMGvRgIKkXu+yp6POWl0qKG85gN/melR3HDY=
 github.com/godbus/dbus/v5 v5.0.4/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
 github.com/gogo/protobuf v1.1.1/go.mod h1:r8qH/GZQm5c6nD/R0oafs1akxWv10x8SbQlK7atdtwQ=
@@ -426,8 +428,6 @@ github.com/wabarc/helper v0.0.0-20211225065210-3d35291efe54 h1:g0hdl4gCuS61IGANi
 github.com/wabarc/helper v0.0.0-20211225065210-3d35291efe54/go.mod h1:uS6mimKlWkGvEZXkJ6JoW7LYnnB2JP6dLU9q7pgDaWQ=
 github.com/wabarc/ipfs-pinner v1.1.1-0.20220126131044-16299c0dd43d h1:rSjZNYtr/5ep62nmcAF31v8zUGb0scD3bov/vAzYUpc=
 github.com/wabarc/ipfs-pinner v1.1.1-0.20220126131044-16299c0dd43d/go.mod h1:Ah+jDIIAr5MWYIFKeWHP1EfanCm3kvIMK1jyuk2NfoM=
-github.com/wabarc/obelisk v0.0.0-20220214133717-b731766a194b h1:Nwc6z9iHvaTAIQ/H4rFoah6Ve6upZY/wVfMOOCZLhBs=
-github.com/wabarc/obelisk v0.0.0-20220214133717-b731766a194b/go.mod h1:1qhWqSYJil8gAg6HZqLtAuvv1S5bh3xJwd4N/WCO0aM=
 github.com/whyrusleeping/tar-utils v0.0.0-20180509141711-8c6c8ba81d5c h1:GGsyl0dZ2jJgVT+VvWBf/cNijrHRhkrTjkmp5wg7li0=
 github.com/whyrusleeping/tar-utils v0.0.0-20180509141711-8c6c8ba81d5c/go.mod h1:xxcJeBb7SIUl/Wzkz1eVKJE/CB34YNrqX2TQI6jY9zs=
 github.com/ybbus/httpretry v1.0.1 h1:lpo0rx/qY4kvishWD6kDgEFW7uGzx4gB/9AgPO5rg9Q=
