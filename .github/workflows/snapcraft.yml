@@ -1,3 +1,7 @@
+# Copyright 2020 Wayback Archiver. All rights reserved.
+# Use of this source code is governed by the GNU GPL v3
+# license that can be found in the LICENSE file.
+#
 name: Snapcraft
 
 on:
@@ -11,11 +15,6 @@ permissions: write-all
 jobs:
   snapcraft:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        platform:
-          - i386
-          - amd64
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v3
@@ -32,16 +31,15 @@ jobs:
           sed -i "s/version: 'git'/version: '${version}'/g" snapcraft.yaml
 
       - id: build
-        name: Build snap
-        uses: diddlesnaps/snapcraft-multiarch-action@v1
+        name: Build Snap
+        uses: snapcore/action-build@v1
         with:
-          architecture: ${{ matrix.platform }}
           snapcraft-channel: stable
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: snap-${{ matrix.platform }}
+          name: rivet-snap
           path: ${{ steps.build.outputs.snap }}
 
       - uses: snapcore/action-publish@v1

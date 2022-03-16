@@ -9,9 +9,8 @@ description: |
   Website https://github.com/wabarc/rivet
 
 grade: stable
-
 confinement: strict
-
+compression: lzo
 base: core18
 
 parts:

@@ -114,10 +114,6 @@ jobs:
   snapcraft:
     name: Build Snap
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        platform:
-          - amd64
     steps:
     - name: Check out code base
       uses: actions/checkout@v3
@@ -135,9 +131,8 @@ jobs:
 
     - id: build
       name: Build snap
-      uses: diddlesnaps/snapcraft-multiarch-action@v1
+      uses: snapcore/action-build@v1
       with:
-        architecture: ${{ matrix.platform }}
         snapcraft-channel: stable
 
     - name: Upload artifact
