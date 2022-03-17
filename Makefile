@@ -112,9 +112,7 @@ releases: $(tar_releases) $(zip_releases) ## Packaging all binaries
 clean: ## Clean workspace
 	rm -f $(BINDIR)/*
 	rm -f $(PACKDIR)/*
-	rm -rf data-dir*
-	rm -rf coverage*
-	rm -rf *.out
+	rm -rf data-dir* coverage* bin *.out
 
 fmt: ## Format codebase
 	@echo "-> Running go fmt"

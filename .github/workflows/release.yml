@@ -114,6 +114,8 @@ jobs:
   snapcraft:
     name: Build Snap
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.env.outputs.version }}
     steps:
     - name: Check out code base
       uses: actions/checkout@v3
@@ -125,9 +127,11 @@ jobs:
 
     - name: Set env & Print wayback version
       shell: bash
+      id: env
       run: |
         version=$(git describe --tags `git rev-list --tags --max-count=1` | sed -e 's/v//g')
         sed -i "s/version: 'git'/version: '${version}'/g" snapcraft.yaml
+        echo "::set-output name=version::${version}"
 
     - id: build
       name: Build snap
@@ -161,6 +165,15 @@ jobs:
         digest="${digest//$'%'/%25}"
         digest="${digest//$'\n'/%0A}"
         echo "::set-output name=result::$digest"
+        # Write digest to file
+        version=${{ steps.snapcraft.outputs.version }}
+        echo "${digest}" > "${{ env.PRODUCT }}-${version}-checksums.txt"
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ env.PRODUCT }}
+        path: ${{ env.PRODUCT }}-*-checksums.txt
 
   release:
     name: Create and upload release

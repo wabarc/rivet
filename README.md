@@ -20,10 +20,10 @@ From source:
 go get -u github.com/wabarc/rivet/cmd/rivet
 ```
 
-From [GoBinaries](https://gobinaries.com/):
+From GitHub Releases:
 
 ```sh
-curl -sf https://gobinaries.com/wabarc/rivet/cmd/rivet | sh
+sh <(wget https://github.com/wabarc/rivet/raw/main/install.sh -O-)
 ```
 
 Using [Snapcraft](https://snapcraft.io/rivet) (on GNU/Linux)
