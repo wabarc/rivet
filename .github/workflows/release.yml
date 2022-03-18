@@ -131,7 +131,7 @@ jobs:
       run: |
         version=$(git describe --tags `git rev-list --tags --max-count=1` | sed -e 's/v//g')
         sed -i "s/version: 'git'/version: '${version}'/g" snapcraft.yaml
-        echo "::set-output name=version::${version}"
+        echo "::set-output name=version::$version"
 
     - id: build
       name: Build snap
@@ -162,11 +162,11 @@ jobs:
       id: digest
       run: |
         digest=$(find *${{ env.PRODUCT }}* -type f -exec sha256sum {} +)
-        digest="${digest//$'%'/%25}"
-        digest="${digest//$'\n'/%0A}"
-        echo "::set-output name=result::$digest"
+        output="${digest//$'%'/%25}"
+        output="${output//$'\n'/%0A}"
+        echo "::set-output name=result::$output"
         # Write digest to file
-        version=${{ steps.snapcraft.outputs.version }}
+        version=${{ needs.snapcraft.outputs.version }}
         echo "${digest}" > "${{ env.PRODUCT }}-${version}-checksums.txt"
 
     - name: Upload artifact
