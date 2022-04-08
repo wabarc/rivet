@@ -136,7 +136,7 @@ jobs:
         echo "::set-output name=filename::${{ env.PRODUCT }}-${ARGS}"
 
     - name: Upload binary artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: ${{ steps.builder.outputs.filename }}
         path: ./build/binary/${{ env.PRODUCT }}*
