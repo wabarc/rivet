@@ -3,7 +3,7 @@ module github.com/wabarc/rivet
 go 1.17
 
 require (
-	github.com/cenkalti/backoff/v4 v4.1.2
+	github.com/cenkalti/backoff/v4 v4.1.3
 	github.com/go-shiori/obelisk v0.0.0-20220220092206-60b3a6b76c5e
 	github.com/ipfs/go-ipfs-api v0.3.0
 	github.com/kennygrant/sanitize v1.2.4
