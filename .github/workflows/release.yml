@@ -82,7 +82,7 @@ jobs:
         fetch-depth: 0
 
     - name: Set up Go 1.x
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v3
       with:
         go-version: ^1.17
 
@@ -106,7 +106,7 @@ jobs:
       run: make TARGET=${{ steps.builder.outputs.args }} releases
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: ${{ env.PRODUCT }}
         path: build/package/${{ env.PRODUCT }}*
@@ -140,7 +140,7 @@ jobs:
         snapcraft-channel: stable
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: ${{ env.PRODUCT }}
         path: ${{ steps.build.outputs.snap }}
@@ -153,7 +153,7 @@ jobs:
       digest: ${{ steps.digest.outputs.result }}
     steps:
     - name: Download math result from build job
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: ${{ env.PRODUCT }}
         path: .
@@ -170,7 +170,7 @@ jobs:
         echo "${digest}" > "${{ env.PRODUCT }}-${version}-checksums.txt"
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: ${{ env.PRODUCT }}
         path: ${{ env.PRODUCT }}-*-checksums.txt
@@ -207,13 +207,13 @@ jobs:
         ' >> gittaglogs.txt
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: release-note
         path: release-note.md
 
     - name: Download math result from build and checksum jobs
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: ${{ env.PRODUCT }}
         path: ${{ env.PRODUCT }}
@@ -236,7 +236,7 @@ jobs:
     needs: [release]
     steps:
     - name: Download artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: release-note
         path: .
