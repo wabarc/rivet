@@ -9,6 +9,7 @@ import (
 	"image/png"
 	"net/http"
 	"net/url"
+	"os"
 	"testing"
 
 	"github.com/wabarc/helper"
@@ -78,9 +79,17 @@ func handleResponse(w http.ResponseWriter, r *http.Request) {
 }
 
 func TestWayback(t *testing.T) {
+	apikey := os.Getenv("IPFS_PINNER_PINATA_API_KEY")
+	secret := os.Getenv("IPFS_PINNER_PINATA_SECRET_API_KEY")
+	if apikey == "" || secret == "" {
+		t.Skip(`Must set env "IPFS_PINNER_PINATA_API_KEY" and "IPFS_PINNER_PINATA_SECRET_API_KEY"`)
+	}
+
 	opts := []ipfs.PinningOption{
 		ipfs.Mode(ipfs.Remote),
-		ipfs.Uses(pinner.Infura),
+		ipfs.Uses(pinner.Pinata),
+		ipfs.Apikey(apikey),
+		ipfs.Secret(secret),
 	}
 	opt := ipfs.Options(opts...)
 
@@ -102,9 +111,17 @@ func TestWayback(t *testing.T) {
 }
 
 func TestWaybackWithInput(t *testing.T) {
+	apikey := os.Getenv("IPFS_PINNER_PINATA_API_KEY")
+	secret := os.Getenv("IPFS_PINNER_PINATA_SECRET_API_KEY")
+	if apikey == "" || secret == "" {
+		t.Skip(`Must set env "IPFS_PINNER_PINATA_API_KEY" and "IPFS_PINNER_PINATA_SECRET_API_KEY"`)
+	}
+
 	opts := []ipfs.PinningOption{
 		ipfs.Mode(ipfs.Remote),
-		ipfs.Uses(pinner.Infura),
+		ipfs.Uses(pinner.Pinata),
+		ipfs.Apikey(apikey),
+		ipfs.Secret(secret),
 	}
 	opt := ipfs.Options(opts...)
 

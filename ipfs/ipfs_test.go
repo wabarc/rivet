@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"testing"
 
@@ -56,9 +57,17 @@ func TestLocally(t *testing.T) {
 }
 
 func TestRemotely(t *testing.T) {
+	apikey := os.Getenv("IPFS_PINNER_PINATA_API_KEY")
+	secret := os.Getenv("IPFS_PINNER_PINATA_SECRET_API_KEY")
+	if apikey == "" || secret == "" {
+		t.Skip(`Must set env "IPFS_PINNER_PINATA_API_KEY" and "IPFS_PINNER_PINATA_SECRET_API_KEY"`)
+	}
+
 	opts := []PinningOption{
 		Mode(Remote),
-		Uses(pinner.Infura),
+		Uses(pinner.Pinata),
+		Apikey(apikey),
+		Secret(secret),
 	}
 
 	p := Options(opts...)
