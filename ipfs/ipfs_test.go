@@ -96,6 +96,7 @@ func TestRateLimit(t *testing.T) {
 		Mode(Local),
 		Host(host),
 		Port(port),
+		Backoff(true),
 	}
 
 	p := Options(opts...)
