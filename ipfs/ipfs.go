@@ -20,8 +20,8 @@ import (
 type mode int
 
 const (
-	Remote mode = iota // Store files to pinning service
-	Local              // Store file on local IPFS node
+	Remote mode = iota + 1 // Store files to pinning service
+	Local                  // Store file on local IPFS node
 
 	maxElapsedTime = 5 * time.Minute
 	maxRetries     = 10
@@ -66,6 +66,9 @@ type Pinning struct {
 	Pinner string
 	Apikey string
 	Secret string
+
+	// Whether or not to use backoff stragty.
+	backoff bool
 }
 
 type PinningOption func(*Pinning)
@@ -106,6 +109,12 @@ func Secret(s string) PinningOption {
 	}
 }
 
+func Backoff(b bool) PinningOption {
+	return func(o *Pinning) {
+		o.backoff = b
+	}
+}
+
 func Options(options ...PinningOption) Pinning {
 	var p Pinning
 	for _, o := range options {
@@ -127,7 +136,7 @@ func (l *Locally) Pin(buf []byte) (cid string, err error) {
 		cid, err = l.shell.Add(bytes.NewReader(buf), shell.Pin(true))
 		return err
 	}
-	err = doRetry(action)
+	err = l.doRetry(action)
 	if err != nil {
 		return "", errors.Wrap(err, "add file to IPFS failed")
 	}
@@ -141,7 +150,7 @@ func (l *Locally) PinDir(path string) (cid string, err error) {
 		cid, err = l.shell.AddDir(path)
 		return err
 	}
-	err = doRetry(action)
+	err = l.doRetry(action)
 	if err != nil {
 		return "", errors.Wrap(err, "add directory to IPFS failed")
 	}
@@ -155,7 +164,7 @@ func (r *Remotely) Pin(buf []byte) (cid string, err error) {
 		cid, err = r.remotely().Pin(buf)
 		return err
 	}
-	err = doRetry(action)
+	err = r.doRetry(action)
 	return
 }
 
@@ -166,7 +175,7 @@ func (r *Remotely) PinDir(path string) (cid string, err error) {
 		cid, err = r.remotely().Pin(path)
 		return err
 	}
-	err = doRetry(action)
+	err = r.doRetry(action)
 	return
 }
 
@@ -178,10 +187,14 @@ func (r *Remotely) remotely() *pinner.Config {
 	}
 }
 
-func doRetry(op backoff.Operation) error {
-	exp := backoff.NewExponentialBackOff()
-	exp.MaxElapsedTime = maxElapsedTime
-	bo := backoff.WithMaxRetries(exp, maxRetries)
+func (p *Pinning) doRetry(op backoff.Operation) error {
+	if p.backoff {
+		exp := backoff.NewExponentialBackOff()
+		exp.MaxElapsedTime = maxElapsedTime
+		bo := backoff.WithMaxRetries(exp, maxRetries)
 
-	return backoff.Retry(op, bo)
+		return backoff.Retry(op, bo)
+	}
+
+	return op()
 }

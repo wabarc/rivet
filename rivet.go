@@ -27,7 +27,12 @@ type Shaft struct {
 	// Hold specifies which IPFS mode to pin data through.
 	Hold ipfs.Pinning
 
-	ArchiveOnly bool // Do not store file on any IPFS node, just archive
+	// Next is a fallback pinning service. If the `Hold`
+	// pinning service fails, it will be used.
+	Next ipfs.Pinning
+
+	// Do not store file on any IPFS node, just archive
+	ArchiveOnly bool
 }
 
 // Wayback uses IPFS to archive webpages.
@@ -82,7 +87,16 @@ func (s *Shaft) Wayback(ctx context.Context, input *url.URL) (cid string, err er
 		cid, err = (&ipfs.Remotely{Pinning: s.Hold}).PinDir(dir)
 	}
 	if err != nil {
-		return "", errors.Wrap(err, "pin failed")
+		// Try fallback pinning service
+		switch s.Next.Mode {
+		case ipfs.Local:
+			cid, err = (&ipfs.Locally{Pinning: s.Next}).PinDir(dir)
+		case ipfs.Remote:
+			cid, err = (&ipfs.Remotely{Pinning: s.Next}).PinDir(dir)
+		}
+		if err != nil {
+			return "", errors.Wrap(err, "pin failed")
+		}
 	}
 	if cid == "" {
 		return "", errors.New("cid empty")
