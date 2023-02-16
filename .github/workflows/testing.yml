@@ -39,7 +39,7 @@ jobs:
         go-version: ${{ matrix.go }}
 
     - name: Set up IPFS
-      uses: ibnesayeed/setup-ipfs@fa9de9ebdf580cf20c588d867a2d62044f956495
+      uses: ibnesayeed/setup-ipfs@aff2e4ae38368a44ac36ecc244f8c693d2e5b263
       with:
         ipfs_version: "0.17.0"
         run_daemon: true
