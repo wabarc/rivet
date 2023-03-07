@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/cenkalti/backoff/v4 v4.2.0
 	github.com/go-shiori/obelisk v0.0.0-20221119111008-23c015a8fad7
-	github.com/ipfs/go-ipfs-api v0.3.0
+	github.com/ipfs/go-ipfs-api v0.4.0
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/pkg/errors v0.9.1
 	github.com/wabarc/helper v0.0.0-20221225124211-0ac3bfc279b4
@@ -26,8 +26,7 @@ require (
 	github.com/klauspost/cpuid/v2 v2.2.2 // indirect
 	github.com/libp2p/go-buffer-pool v0.1.0 // indirect
 	github.com/libp2p/go-flow-metrics v0.1.0 // indirect
-	github.com/libp2p/go-libp2p v0.24.1 // indirect
-	github.com/libp2p/go-libp2p-core v0.20.1 // indirect
+	github.com/libp2p/go-libp2p v0.24.2 // indirect
 	github.com/libp2p/go-openssl v0.1.0 // indirect
 	github.com/mattn/go-pointer v0.0.1 // indirect
 	github.com/minio/sha256-simd v1.0.0 // indirect
