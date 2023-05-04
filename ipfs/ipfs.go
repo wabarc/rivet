@@ -6,8 +6,7 @@ package ipfs
 
 import (
 	"bytes"
-	"net"
-	"strconv"
+	"net/http"
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
@@ -45,10 +44,14 @@ type Pinner interface {
 	PinDir(path string) (string, error)
 }
 
+// Locally embeds the Pinning struct, which provides configuration for pinning services
+// used for data storage.
 type Locally struct {
 	Pinning
 }
 
+// Remotely embeds the Pinning struct, which provides configuration for pinning services
+// used for data storage.
 type Remotely struct {
 	Pinning
 }
@@ -67,66 +70,11 @@ type Pinning struct {
 	Apikey string
 	Secret string
 
+	// Client represents a http client.
+	Client *http.Client
+
 	// Whether or not to use backoff stragty.
 	backoff bool
-}
-
-type PinningOption func(*Pinning)
-
-func Mode(m mode) PinningOption {
-	return func(o *Pinning) {
-		o.Mode = m
-	}
-}
-
-func Host(h string) PinningOption {
-	return func(o *Pinning) {
-		o.Host = h
-	}
-}
-
-func Port(p int) PinningOption {
-	return func(o *Pinning) {
-		o.Port = p
-	}
-}
-
-func Uses(p string) PinningOption {
-	return func(o *Pinning) {
-		o.Pinner = p
-	}
-}
-
-func Apikey(k string) PinningOption {
-	return func(o *Pinning) {
-		o.Apikey = k
-	}
-}
-
-func Secret(s string) PinningOption {
-	return func(o *Pinning) {
-		o.Secret = s
-	}
-}
-
-func Backoff(b bool) PinningOption {
-	return func(o *Pinning) {
-		o.backoff = b
-	}
-}
-
-func Options(options ...PinningOption) Pinning {
-	var p Pinning
-	for _, o := range options {
-		o(&p)
-	}
-	if p.Mode == Local {
-		p.shell = shell.NewShell(net.JoinHostPort(p.Host, strconv.Itoa(p.Port)))
-	}
-	if p.Mode == Remote && p.Pinner == "" {
-		p.Pinner = pinner.Infura
-	}
-	return p
 }
 
 // Pin implements putting the data to local IPFS node by given buf. It
@@ -184,6 +132,7 @@ func (r *Remotely) remotely() *pinner.Config {
 		Pinner: r.Pinner,
 		Apikey: r.Apikey,
 		Secret: r.Secret,
+		Client: r.Client,
 	}
 }
 
