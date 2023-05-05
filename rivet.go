@@ -9,6 +9,7 @@ import (
 	"context"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -24,6 +25,9 @@ import (
 
 // Shaft represents the rivet handler.
 type Shaft struct {
+	// Client represents a http client.
+	Client *http.Client
+
 	// Hold specifies which IPFS mode to pin data through.
 	Hold ipfs.Pinning
 
@@ -58,6 +62,9 @@ func (s *Shaft) Wayback(ctx context.Context, input *url.URL) (cid string, err er
 
 		WrapDirectory:  dir,
 		RequestTimeout: 3 * time.Second,
+	}
+	if s.Client != nil {
+		arc.Transport = s.Client.Transport
 	}
 	arc.Validate()
 
