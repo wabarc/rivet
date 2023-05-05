@@ -2,10 +2,12 @@ package ipfs
 
 import (
 	"fmt"
+	"mime"
+	"mime/multipart"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/wabarc/helper"
@@ -13,6 +15,18 @@ import (
 )
 
 var (
+	apikey           = "1234"
+	secret           = "abcd"
+	badRequestJSON   = `{}`
+	unauthorizedJSON = `{}`
+	pinHashJSON      = `{
+    "hashToPin": "Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a"
+}`
+	pinFileJSON = `{
+    "IpfsHash": "Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a",
+    "PinSize": 1234,
+    "Timestamp": "1979-01-01 00:00:00Z"
+}`
 	ipfsCid = "Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a"
 	addJSON = fmt.Sprintf(`{
   "Bytes": 0,
@@ -21,6 +35,55 @@ var (
   "Size": "1B"
 }`, ipfsCid)
 )
+
+func handleResponse(w http.ResponseWriter, r *http.Request) {
+	switch r.URL.Hostname() {
+	case "api.pinata.cloud":
+		authorization := r.Header.Get("Authorization")
+		apiKey := r.Header.Get("pinata_api_key")
+		apiSec := r.Header.Get("pinata_secret_api_key")
+		switch {
+		case apiKey != "" && apiSec != "":
+			// access
+		case authorization != "" && !strings.HasPrefix(authorization, "Bearer"):
+			w.WriteHeader(http.StatusUnauthorized)
+			_, _ = w.Write([]byte(unauthorizedJSON))
+			return
+		default:
+			w.WriteHeader(http.StatusUnauthorized)
+			_, _ = w.Write([]byte(unauthorizedJSON))
+			return
+		}
+
+		switch r.URL.Path {
+		case "/pinning/pinFileToIPFS":
+			_ = r.ParseMultipartForm(32 << 20)
+			_, params, parseErr := mime.ParseMediaType(r.Header.Get("Content-Type"))
+			if parseErr != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				_, _ = w.Write([]byte(badRequestJSON))
+				return
+			}
+
+			multipartReader := multipart.NewReader(r.Body, params["boundary"])
+			defer r.Body.Close()
+
+			// Pin directory
+			if multipartReader != nil && len(r.MultipartForm.File["file"]) > 1 {
+				_, _ = w.Write([]byte(pinFileJSON))
+				return
+			}
+			// Pin file
+			if multipartReader != nil && len(r.MultipartForm.File["file"]) == 1 {
+				_, _ = w.Write([]byte(pinFileJSON))
+				return
+			}
+		case "/pinning/pinByHash":
+			_, _ = w.Write([]byte(pinHashJSON))
+			return
+		}
+	}
+}
 
 func TestLocally(t *testing.T) {
 	handleResponse := func(w http.ResponseWriter, r *http.Request) {
@@ -57,17 +120,16 @@ func TestLocally(t *testing.T) {
 }
 
 func TestRemotely(t *testing.T) {
-	apikey := os.Getenv("IPFS_PINNER_PINATA_API_KEY")
-	secret := os.Getenv("IPFS_PINNER_PINATA_SECRET_API_KEY")
-	if apikey == "" || secret == "" {
-		t.Skip(`Must set env "IPFS_PINNER_PINATA_API_KEY" and "IPFS_PINNER_PINATA_SECRET_API_KEY"`)
-	}
+	client, mux, server := helper.MockServer()
+	mux.HandleFunc("/", handleResponse)
+	defer server.Close()
 
 	opts := []PinningOption{
 		Mode(Remote),
 		Uses(pinner.Pinata),
 		Apikey(apikey),
 		Secret(secret),
+		Client(client),
 	}
 
 	p := Options(opts...)

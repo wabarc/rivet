@@ -7,9 +7,11 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"mime"
+	"mime/multipart"
 	"net/http"
 	"net/url"
-	"os"
+	"strings"
 	"testing"
 
 	"github.com/wabarc/helper"
@@ -17,7 +19,20 @@ import (
 	"github.com/wabarc/rivet/ipfs"
 )
 
-var content = `<html>
+var (
+	apikey           = "1234"
+	secret           = "abcd"
+	badRequestJSON   = `{}`
+	unauthorizedJSON = `{}`
+	pinHashJSON      = `{
+    "hashToPin": "Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a"
+}`
+	pinFileJSON = `{
+    "IpfsHash": "Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a",
+    "PinSize": 1234,
+    "Timestamp": "1979-01-01 00:00:00Z"
+}`
+	content = `<html>
 <head>
     <title>Example Domain</title>
 </head>
@@ -33,6 +48,7 @@ var content = `<html>
 </body>
 </html>
 `
+)
 
 func genImage(height int) bytes.Buffer {
 	width := 1024
@@ -67,38 +83,80 @@ func genImage(height int) bytes.Buffer {
 }
 
 func handleResponse(w http.ResponseWriter, r *http.Request) {
-	switch r.URL.Path {
-	case "/":
-		w.Header().Set("Content-Type", "text/html")
-		_, _ = w.Write([]byte(content))
-	case "/image.png":
-		buf := genImage(1024)
-		w.Header().Set("Content-Type", "image/png")
-		_, _ = w.Write(buf.Bytes())
+	switch r.URL.Hostname() {
+	case "api.pinata.cloud":
+		authorization := r.Header.Get("Authorization")
+		apiKey := r.Header.Get("pinata_api_key")
+		apiSec := r.Header.Get("pinata_secret_api_key")
+		switch {
+		case apiKey != "" && apiSec != "":
+			// access
+		case authorization != "" && !strings.HasPrefix(authorization, "Bearer"):
+			w.WriteHeader(http.StatusUnauthorized)
+			_, _ = w.Write([]byte(unauthorizedJSON))
+			return
+		default:
+			w.WriteHeader(http.StatusUnauthorized)
+			_, _ = w.Write([]byte(unauthorizedJSON))
+			return
+		}
+
+		switch r.URL.Path {
+		case "/pinning/pinFileToIPFS":
+			_ = r.ParseMultipartForm(32 << 20)
+			_, params, parseErr := mime.ParseMediaType(r.Header.Get("Content-Type"))
+			if parseErr != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				_, _ = w.Write([]byte(badRequestJSON))
+				return
+			}
+
+			multipartReader := multipart.NewReader(r.Body, params["boundary"])
+			defer r.Body.Close()
+
+			// Pin directory
+			if multipartReader != nil && len(r.MultipartForm.File["file"]) > 1 {
+				_, _ = w.Write([]byte(pinFileJSON))
+				return
+			}
+			// Pin file
+			if multipartReader != nil && len(r.MultipartForm.File["file"]) == 1 {
+				_, _ = w.Write([]byte(pinFileJSON))
+				return
+			}
+		case "/pinning/pinByHash":
+			_, _ = w.Write([]byte(pinHashJSON))
+			return
+		}
+	default:
+		switch r.URL.Path {
+		case "/":
+			w.Header().Set("Content-Type", "text/html")
+			_, _ = w.Write([]byte(content))
+		case "/image.png":
+			buf := genImage(1024)
+			w.Header().Set("Content-Type", "image/png")
+			_, _ = w.Write(buf.Bytes())
+		}
 	}
 }
 
 func TestWayback(t *testing.T) {
-	apikey := os.Getenv("IPFS_PINNER_PINATA_API_KEY")
-	secret := os.Getenv("IPFS_PINNER_PINATA_SECRET_API_KEY")
-	if apikey == "" || secret == "" {
-		t.Skip(`Must set env "IPFS_PINNER_PINATA_API_KEY" and "IPFS_PINNER_PINATA_SECRET_API_KEY"`)
-	}
+	client, mux, server := helper.MockServer()
+	mux.HandleFunc("/", handleResponse)
+	defer server.Close()
 
 	opts := []ipfs.PinningOption{
 		ipfs.Mode(ipfs.Remote),
 		ipfs.Uses(pinner.Pinata),
 		ipfs.Apikey(apikey),
 		ipfs.Secret(secret),
+		ipfs.Client(client),
 	}
 	opt := ipfs.Options(opts...)
 
-	_, mux, server := helper.MockServer()
-	mux.HandleFunc("/", handleResponse)
-	defer server.Close()
-
 	link := server.URL
-	r := &Shaft{Hold: opt}
+	r := &Shaft{Hold: opt, Client: client}
 	input, err := url.Parse(link)
 	if err != nil {
 		t.Fatal(err)
@@ -111,26 +169,21 @@ func TestWayback(t *testing.T) {
 }
 
 func TestWaybackWithInput(t *testing.T) {
-	apikey := os.Getenv("IPFS_PINNER_PINATA_API_KEY")
-	secret := os.Getenv("IPFS_PINNER_PINATA_SECRET_API_KEY")
-	if apikey == "" || secret == "" {
-		t.Skip(`Must set env "IPFS_PINNER_PINATA_API_KEY" and "IPFS_PINNER_PINATA_SECRET_API_KEY"`)
-	}
+	client, mux, server := helper.MockServer()
+	mux.HandleFunc("/", handleResponse)
+	defer server.Close()
 
 	opts := []ipfs.PinningOption{
 		ipfs.Mode(ipfs.Remote),
 		ipfs.Uses(pinner.Pinata),
 		ipfs.Apikey(apikey),
 		ipfs.Secret(secret),
+		ipfs.Client(client),
 	}
 	opt := ipfs.Options(opts...)
 
-	_, mux, server := helper.MockServer()
-	mux.HandleFunc("/", handleResponse)
-	defer server.Close()
-
 	link := server.URL
-	r := &Shaft{Hold: opt}
+	r := &Shaft{Hold: opt, Client: client}
 	input, err := url.Parse(link)
 	if err != nil {
 		t.Fatal(err)

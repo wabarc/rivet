@@ -22,8 +22,8 @@ const (
 	Remote mode = iota + 1 // Store files to pinning service
 	Local                  // Store file on local IPFS node
 
-	maxElapsedTime = 5 * time.Minute
-	maxRetries     = 10
+	maxElapsedTime = time.Minute
+	maxRetries     = 3
 )
 
 var _ Pinner = (*Locally)(nil)
