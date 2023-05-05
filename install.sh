@@ -149,6 +149,7 @@ is_command() {
 echoerr() {
   echo "$@" 1>&2
 }
+# shellcheck disable=SC2317
 log_prefix() {
   echo "$0"
 }
@@ -214,7 +215,7 @@ uname_arch() {
     armv6*) arch="armv6" ;;
     armv7*) arch="armv7" ;;
   esac
-  echo ${arch}
+  echo "${arch}"
 }
 uname_os_check() {
   os=$(uname_os)
