@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/go-shiori/obelisk v0.0.0-20230316095823-42f6a2f99d9d
-	github.com/ipfs/go-ipfs-api v0.6.0
+	github.com/ipfs/go-ipfs-api v0.6.1
 	github.com/kennygrant/sanitize v1.2.4
 	github.com/pkg/errors v0.9.1
 	github.com/wabarc/helper v0.0.0-20230418130954-be7440352bcb
@@ -41,7 +41,6 @@ require (
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/tdewolff/parse/v2 v2.6.5 // indirect
-	github.com/whyrusleeping/tar-utils v0.0.0-20201201191210-20a61371de5b // indirect
 	github.com/ybbus/httpretry v1.0.2 // indirect
 	golang.org/x/crypto v0.8.0 // indirect
 	golang.org/x/net v0.9.0 // indirect
